@@ -1,0 +1,2 @@
+# NHAPMON_CNPM_NHOM-23_QUAN-LY-VA-KET-NOI-GIA-SU-TAI-HUE
+Nền tảng Kết nối &amp; Quản lý Gia sư Tại Huế là giải pháp số hóa toàn diện việc dạy kèm trực tiếp giữa phụ huynh và gia sư sinh viên. Hệ thống nổi bật với tính năng ghép lớp theo bán kính gần (dưới 3–5 km) giúp tối ưu di chuyển, xác thực lý lịch sinh viên nghiêm ngặt tạo dựng niềm tin an toàn cùng sổ liên lạc điện tử ghi nhận tiến độ bài học 

@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TutorLink — Hệ Thống Quản Lý Gia Sư & Lớp Học</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <!-- Brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            TL
+          </div>
+          <div>
+            <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">TutorLink Manager</h1>
+            <p class="text-xs text-slate-500 hidden sm:block">Hệ thống quản lý trung tâm & kết nối gia sư</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl" aria-label="Main Navigation">
+          <button type="button" data-tab="dashboard" class="nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm">
+            Tổng quan
+          </button>
+          <button type="button" data-tab="tutors" class="nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900">
+            Gia sư <span id="badge-tutors" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-600">0</span>
+          </button>
+          <button type="button" data-tab="classes" class="nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900">
+            Lớp học <span id="badge-classes" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">0</span>
+          </button>
+          <button type="button" data-tab="schedule" class="nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900">
+            Lịch dạy & Điểm danh
+          </button>
+          <button type="button" data-tab="finance" class="nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900">
+            Học phí & Thu chi
+          </button>
+        </nav>
+
+        <!-- Quick Actions -->
+        <div class="flex items-center gap-2">
+          <button type="button" id="btn-quick-class" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition">
+            + Mở lớp mới
+          </button>
+          <button type="button" id="btn-quick-tutor" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm">
+            + Thêm gia sư
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Bar -->
+      <div class="flex md:hidden items-center gap-1 overflow-x-auto py-2 border-t border-slate-100 custom-scrollbar">
+        <button type="button" data-tab="dashboard" class="nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white">
+          Tổng quan
+        </button>
+        <button type="button" data-tab="tutors" class="nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100">
+          Gia sư
+        </button>
+        <button type="button" data-tab="classes" class="nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100">
+          Lớp học
+        </button>
+        <button type="button" data-tab="schedule" class="nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100">
+          Lịch dạy
+        </button>
+        <button type="button" data-tab="finance" class="nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100">
+          Học phí
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section id="view-dashboard" class="space-y-6">
+      <!-- KPI Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tổng Gia sư</span>
+            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">GS</span>
+          </div>
+          <p id="kpi-total-tutors" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+          <p id="kpi-sub-tutors" class="text-xs text-emerald-600 mt-1">Đang sẵn sàng nhận lớp</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Lớp Đang Hoạt Động</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">LH</span>
+          </div>
+          <p id="kpi-active-classes" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+          <p id="kpi-waiting-classes" class="text-xs text-amber-600 mt-1">0 lớp đang chờ ghép gia sư</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tổng Học Phí Tháng</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">VNĐ</span>
+          </div>
+          <p id="kpi-monthly-revenue" class="text-2xl font-bold text-slate-900 mt-2">0 ₫</p>
+          <p id="kpi-commission" class="text-xs text-slate-500 mt-1">Phí trung tâm: 0 ₫</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tỷ Lệ Ghép Lớp</span>
+            <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">%</span>
+          </div>
+          <p id="kpi-match-rate" class="text-2xl font-bold text-slate-900 mt-2">0%</p>
+          <p id="kpi-total-sessions" class="text-xs text-sky-600 mt-1">0 buổi học đã điểm danh</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Phân bổ lớp học & học phí theo môn</h2>
+              <p class="text-xs text-slate-500">Thống kê học phí hàng tháng (nghìn VNĐ) theo từng bộ môn</p>
+            </div>
+          </div>
+          <div class="relative h-72">
+            <canvas id="chart-subjects"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="mb-4">
+            <h2 class="text-base font-bold text-slate-900">Trạng thái lớp học</h2>
+            <p class="text-xs text-slate-500">Tỷ lệ lớp đang học, chờ ghép và hoàn thành</p>
+          </div>
+          <div class="relative h-72">
+            <canvas id="chart-status"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Urgent Unassigned Classes & Recent Sessions -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Waiting Classes -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Lớp cần tìm gia sư ngay</h2>
+              <p class="text-xs text-slate-500">Bấm "Ghép gia sư" để chọn gia sư phù hợp theo môn</p>
+            </div>
+            <button type="button" id="btn-goto-classes" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              Xem tất cả →
+            </button>
+          </div>
+          <div id="dashboard-waiting-list" class="space-y-3 flex-1"></div>
+        </div>
+
+        <!-- Upcoming Schedule & Quick Actions -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Ca dạy trong tuần & Điểm danh nhanh</h2>
+              <p class="text-xs text-slate-500">Ghi nhận buổi dạy để tự động tính lương gia sư</p>
+            </div>
+            <button type="button" id="btn-goto-schedule" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              Lịch chi tiết →
+            </button>
+          </div>
+          <div id="dashboard-schedule-list" class="space-y-3 flex-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: TUTORS MANAGEMENT -->
+    <section id="view-tutors" class="hidden space-y-5">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Danh sách Gia sư</h2>
+            <p class="text-xs text-slate-500">Quản lý hồ sơ năng lực, môn dạy, khu vực và trạng thái nhận lớp</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="filter-tutor-search" placeholder="Tìm tên, môn dạy, trường..." class="px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-60">
+            <select id="filter-tutor-subject" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">Tất cả môn học</option>
+              <option value="Toán">Toán học</option>
+              <option value="Hóa học">Hóa học</option>
+              <option value="Tin học">Tin học / Lập trình</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
+              <option value="Vật lý">Vật lý</option>
+              <option value="Ngữ văn">Ngữ văn</option>
+            </select>
+            <select id="filter-tutor-status" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">Mọi trạng thái</option>
+              <option value="Sẵn sàng">Sẵn sàng nhận lớp</option>
+              <option value="Đang dạy">Đang dạy</option>
+              <option value="Tạm nghỉ">Tạm nghỉ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tutors Grid -->
+      <div id="tutors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- VIEW 3: CLASSES & STUDENTS MANAGEMENT -->
+    <section id="view-classes" class="hidden space-y-5">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Quản lý Lớp học & Yêu cầu tìm Gia sư</h2>
+            <p class="text-xs text-slate-500">Theo dõi các lớp phụ huynh đăng ký, ghép gia sư và quản lý tiến độ</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="filter-class-search" placeholder="Tìm mã lớp, tên học viên, địa chỉ..." class="px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64">
+            <select id="filter-class-status" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="Chờ ghép">Chờ ghép gia sư</option>
+              <option value="Đang học">Đang học</option>
+              <option value="Hoàn thành">Hoàn thành</option>
+            </select>
+            <select id="filter-class-subject" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">Tất cả môn</option>
+              <option value="Toán">Toán học</option>
+              <option value="Hóa học">Hóa học</option>
+              <option value="Tin học">Tin học / Lập trình</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
+              <option value="Vật lý">Vật lý</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classes Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
+                <th class="py-3.5 px-4">Mã & Môn học</th>
+                <th class="py-3.5 px-4">Học viên & Địa chỉ</th>
+                <th class="py-3.5 px-4">Lịch học & Yêu cầu</th>
+                <th class="py-3.5 px-4">Học phí / tháng</th>
+                <th class="py-3.5 px-4">Gia sư phụ trách</th>
+                <th class="py-3.5 px-4">Trạng thái</th>
+                <th class="py-3.5 px-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="classes-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: SCHEDULE & ATTENDANCE -->
+    <section id="view-schedule" class="hidden space-y-5">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Thời khóa biểu & Điểm danh buổi dạy</h2>
+          <p class="text-xs text-slate-500">Ghi nhận điểm danh từng buổi dạy để tính số buổi hoàn thành trong tháng</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="filter-schedule-day" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">Cả tuần (Thứ 2 - CN)</option>
+            <option value="Thứ 2">Thứ 2</option>
+            <option value="Thứ 3">Thứ 3</option>
+            <option value="Thứ 4">Thứ 4</option>
+            <option value="Thứ 5">Thứ 5</option>
+            <option value="Thứ 6">Thứ 6</option>
+            <option value="Thứ 7">Thứ 7</option>
+            <option value="Chủ nhật">Chủ nhật</option>
+          </select>
+          <button type="button" id="btn-add-session" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition">
+            + Thêm ca dạy
+          </button>
+        </div>
+      </div>
+
+      <div id="schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- VIEW 5: FINANCE & PAYROLL -->
+    <section id="view-finance" class="hidden space-y-5">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Quản lý Học phí, Lương Gia sư & Hoa hồng</h2>
+          <p class="text-xs text-slate-500">Theo dõi thu học phí từ phụ huynh, chi trả thù lao gia sư và xuất báo cáo CSV</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="filter-finance-status" class="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">Tất cả phiếu thu</option>
+            <option value="Đã thanh toán">Đã thanh toán</option>
+            <option value="Chưa thu">Chưa thu học phí</option>
+          </select>
+          <button type="button" id="btn-export-csv" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition">
+            Xuất CSV Báo cáo
+          </button>
+          <button type="button" id="btn-reset-data" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            Khôi phục dữ liệu mẫu
+          </button>
+        </div>
+      </div>
+
+      <!-- Finance Summary Strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <span class="text-xs text-slate-500 font-medium">Đã thu trong tháng</span>
+          <p id="fin-collected" class="text-xl font-bold text-emerald-600 mt-1">0 ₫</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <span class="text-xs text-slate-500 font-medium">Còn cần thu từ phụ huynh</span>
+          <p id="fin-pending" class="text-xl font-bold text-amber-600 mt-1">0 ₫</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <span class="text-xs text-slate-500 font-medium">Tổng phí dịch vụ trung tâm</span>
+          <p id="fin-net-commission" class="text-xl font-bold text-indigo-600 mt-1">0 ₫</p>
+        </div>
+      </div>
+
+      <!-- Finance Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
+                <th class="py-3.5 px-4">Mã lớp & Học viên</th>
+                <th class="py-3.5 px-4">Gia sư</th>
+                <th class="py-3.5 px-4">Số buổi đã dạy</th>
+                <th class="py-3.5 px-4">Tổng học phí</th>
+                <th class="py-3.5 px-4">Lương gia sư</th>
+                <th class="py-3.5 px-4">Phí trung tâm (%)</th>
+                <th class="py-3.5 px-4">Trạng thái</th>
+                <th class="py-3.5 px-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="finance-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: ADD / EDIT TUTOR -->
+  <div id="modal-tutor" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 id="modal-tutor-title" class="text-lg font-bold text-slate-900">Thêm Gia sư mới</h3>
+        <button type="button" id="btn-close-tutor-modal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <form id="form-tutor" class="space-y-4 mt-4">
+        <input type="hidden" id="tutor-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
+            <input type="text" id="tutor-name" required placeholder="VD: Nguyễn Minh Khoa" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại *</label>
+            <input type="text" id="tutor-phone" required placeholder="VD: 0912 345 678" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Môn dạy chính *</label>
+            <select id="tutor-subject" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Hóa học">Hóa học</option>
+              <option value="Tin học">Tin học / Lập trình</option>
+              <option value="Toán">Toán học</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
+              <option value="Vật lý">Vật lý</option>
+              <option value="Ngữ văn">Ngữ văn</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Trình độ / Đơn vị *</label>
+            <input type="text" id="tutor-university" required placeholder="VD: ĐH Sư phạm Huế - SP Tin học" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Thù lao / buổi (VNĐ) *</label>
+            <input type="number" id="tutor-rate" required min="50000" step="10000" value="180000" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Khu vực dạy *</label>
+            <input type="text" id="tutor-area" required placeholder="VD: TP. Huế / Online" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Trạng thái</label>
+            <select id="tutor-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Sẵn sàng">Sẵn sàng</option>
+              <option value="Đang dạy">Đang dạy</option>
+              <option value="Tạm nghỉ">Tạm nghỉ</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Thế mạnh & Ghi chú chuyên môn</label>
+          <textarea id="tutor-bio" rows="2" placeholder="VD: Ôn thi HSG Hóa, Lập trình Python, C++, SQL cơ bản..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" id="btn-cancel-tutor" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700">Lưu hồ sơ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD CLASS -->
+  <div id="modal-class" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900">Tạo Lớp học mới</h3>
+        <button type="button" id="btn-close-class-modal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <form id="form-class" class="space-y-4 mt-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tên học viên / Phụ huynh *</label>
+            <input type="text" id="class-student" required placeholder="VD: Em Trần Bảo Ngọc (PH: Chị Lan)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Môn học & Khối lớp *</label>
+            <div class="flex gap-2">
+              <select id="class-subject" class="w-1/2 px-2.5 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Hóa học">Hóa học</option>
+                <option value="Tin học">Tin học</option>
+                <option value="Toán">Toán</option>
+                <option value="Tiếng Anh">Tiếng Anh</option>
+                <option value="Vật lý">Vật lý</option>
+              </select>
+              <input type="text" id="class-grade" required placeholder="Lớp 10, 12..." class="w-1/2 px-2.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Địa chỉ / Hình thức học *</label>
+            <input type="text" id="class-address" required placeholder="VD: Đường Nguyễn Huệ, TP. Huế" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Lịch học yêu cầu *</label>
+            <input type="text" id="class-schedule" required placeholder="VD: T3 - T5 - T7 (18:30 - 20:00)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Học phí / tháng (VNĐ) *</label>
+            <input type="number" id="class-fee" required min="200000" step="50000" value="1600000" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Số buổi / tháng *</label>
+            <input type="number" id="class-total-sessions" required min="4" max="30" value="8" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Phí trung tâm (%)</label>
+            <input type="number" id="class-commission" required min="0" max="50" value="20" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Chọn Gia sư phụ trách (Có thể để trống để ghép sau)</label>
+          <select id="class-tutor-select" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">-- Chờ ghép gia sư --</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" id="btn-cancel-class" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700">Tạo lớp học</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ASSIGN TUTOR TO CLASS -->
+  <div id="modal-assign" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900">Ghép Gia sư cho Lớp học</h3>
+        <button type="button" id="btn-close-assign-modal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <div class="mt-4 space-y-4">
+        <input type="hidden" id="assign-class-id">
+        <div id="assign-class-info" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1"></div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Chọn gia sư phù hợp (Ưu tiên cùng bộ môn)</label>
+          <select id="assign-tutor-dropdown" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" id="btn-cancel-assign" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Đóng</button>
+          <button type="button" id="btn-confirm-assign" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700">Xác nhận ghép lớp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD SCHEDULE SESSION -->
+  <div id="modal-session" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900">Thêm Ca dạy vào Thời khóa biểu</h3>
+        <button type="button" id="btn-close-session-modal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <form id="form-session" class="space-y-4 mt-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Chọn Lớp học *</label>
+          <select id="session-class-id" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Thứ trong tuần *</label>
+            <select id="session-day" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Thứ 2">Thứ 2</option>
+              <option value="Thứ 3">Thứ 3</option>
+              <option value="Thứ 4">Thứ 4</option>
+              <option value="Thứ 5">Thứ 5</option>
+              <option value="Thứ 6">Thứ 6</option>
+              <option value="Thứ 7">Thứ 7</option>
+              <option value="Chủ nhật">Chủ nhật</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Khung giờ *</label>
+            <input type="text" id="session-time" required placeholder="VD: 18:30 - 20:00" value="18:30 - 20:00" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Chủ đề / Nội dung bài dạy *</label>
+          <input type="text" id="session-topic" required placeholder="VD: Chuyên đề Este - Lipit / Thuật toán Sắp xếp" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" id="btn-cancel-session" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700">Lưu ca dạy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    const STORAGE_KEY = 'tutorlink_app_state_v1';
+
+    function getDefaultState() {
+      return {
+        tutors: [
+          {
+            id: 'GS01',
+            name: 'Đặng Quốc Dũng',
+            phone: '0918 246 810',
+            subject: 'Hóa học',
+            university: 'ĐH Sư phạm Huế - SP Tin học (Chuyên Hóa)',
+            rate: 200000,
+            area: 'TP. Huế & Online',
+            status: 'Đang dạy',
+            rating: 5.0,
+            bio: 'Chuyên lấy gốc Hóa THCS/THPT, ôn thi HSG Hóa và tư duy thuật toán Python/C++.'
+          },
+          {
+            id: 'GS02',
+            name: 'Lê Hoàng Bảo Trâm',
+            phone: '0905 312 489',
+            subject: 'Tin học',
+            university: 'ĐH Sư phạm Huế - Khoa Tin học',
+            rate: 190000,
+            area: 'TP. Huế (Thuận Hóa, Phú Xuân)',
+            status: 'Đang dạy',
+            rating: 4.9,
+            bio: 'Lập trình Python, C/C++, cấu trúc dữ liệu giải thuật, SQL Server & thiết kế Web HTML/CSS.'
+          },
+          {
+            id: 'GS03',
+            name: 'Trần Nhật Minh',
+            phone: '0934 781 205',
+            subject: 'Toán',
+            university: 'ĐH Sư phạm Huế - SP Toán học',
+            rate: 180000,
+            area: 'An Cựu, Nguyễn Huệ - TP. Huế',
+            status: 'Sẵn sàng',
+            rating: 4.8,
+            bio: 'Ôn thi chuyển cấp lớp 9 lên 10 và luyện thi THPT Quốc gia môn Toán.'
+          },
+          {
+            id: 'GS04',
+            name: 'Nguyễn Phương Thảo',
+            phone: '0987 654 312',
+            subject: 'Tiếng Anh',
+            university: 'ĐH Ngoại ngữ Huế - IELTS 7.5',
+            rate: 220000,
+            area: 'Vỹ Dạ, Xuân Phú & Online',
+            status: 'Đang dạy',
+            rating: 4.9,
+            bio: 'Giao tiếp phản xạ, ngữ pháp chuyên sâu và luyện thi IELTS Foundation.'
+          },
+          {
+            id: 'GS05',
+            name: 'Võ Văn Kiệt',
+            phone: '0971 502 918',
+            subject: 'Vật lý',
+            university: 'ĐH Khoa học Huế - Vật lý kỹ thuật',
+            rate: 170000,
+            area: 'TP. Huế',
+            status: 'Sẵn sàng',
+            rating: 4.7,
+            bio: 'Kèm Vật lý lớp 10-12, phương pháp giải nhanh trắc nghiệm.'
+          }
+        ],
+        classes: [
+          {
+            id: 'LH101',
+            student: 'Em Nguyễn Gia Huy (PH: Anh Tuấn)',
+            subject: 'Hóa học',
+            grade: 'Lớp 11',
+            address: '42 Nguyễn Huệ, TP. Huế',
+            schedule: 'Thứ 3 - Thứ 5 (18:30 - 20:00)',
+            fee: 1600000,
+            totalSessions: 8,
+            completedSessions: 6,
+            commissionRate: 20,
+            tutorId: 'GS01',
+            status: 'Đang học',
+            paymentStatus: 'Đã thanh toán'
+          },
+          {
+            id: 'LH102',
+            student: 'Em Phạm Minh Châu (PH: Chị Hạnh)',
+            subject: 'Tin học',
+            grade: 'Lớp 10 Chuyên',
+            address: '18 Lê Lợi, TP. Huế',
+            schedule: 'Thứ 4 - Thứ 7 (19:00 - 20:30)',
+            fee: 1520000,
+            totalSessions: 8,
+            completedSessions: 5,
+            commissionRate: 15,
+            tutorId: 'GS02',
+            status: 'Đang học',
+            paymentStatus: 'Chưa thu'
+          },
+          {
+            id: 'LH103',
+            student: 'Em Hoàng Đức Anh (PH: Chị Mai)',
+            subject: 'Toán',
+            grade: 'Lớp 9 Ôn vào 10',
+            address: 'Khu quy hoạch Kiểm Huệ, TP. Huế',
+            schedule: 'Thứ 2 - Thứ 6 (17:30 - 19:00)',
+            fee: 1440000,
+            totalSessions: 8,
+            completedSessions: 0,
+            commissionRate: 20,
+            tutorId: '',
+            status: 'Chờ ghép',
+            paymentStatus: 'Chưa thu'
+          },
+          {
+            id: 'LH104',
+            student: 'Em Lê Khánh Linh (PH: Anh Hùng)',
+            subject: 'Tiếng Anh',
+            grade: 'Lớp 12',
+            address: 'Đường Bà Triệu, TP. Huế',
+            schedule: 'Thứ 3 - Thứ 6 (19:30 - 21:00)',
+            fee: 1760000,
+            totalSessions: 8,
+            completedSessions: 8,
+            commissionRate: 20,
+            tutorId: 'GS04',
+            status: 'Đang học',
+            paymentStatus: 'Đã thanh toán'
+          },
+          {
+            id: 'LH105',
+            student: 'Em Trần Quốc Bảo (PH: Chị Liên)',
+            subject: 'Hóa học',
+            grade: 'Lớp 9 Chuyên Hóa',
+            address: 'Đường Hùng Vương, TP. Huế',
+            schedule: 'Thứ 7 - Chủ nhật (15:00 - 16:30)',
+            fee: 1600000,
+            totalSessions: 8,
+            completedSessions: 0,
+            commissionRate: 20,
+            tutorId: '',
+            status: 'Chờ ghép',
+            paymentStatus: 'Chưa thu'
+          }
+        ],
+        sessions: [
+          {
+            id: 'CA01',
+            classId: 'LH101',
+            day: 'Thứ 3',
+            time: '18:30 - 20:00',
+            topic: 'Cân bằng hóa học & Sự điện li trong dung dịch',
+            attended: true
+          },
+          {
+            id: 'CA02',
+            classId: 'LH102',
+            day: 'Thứ 4',
+            time: '19:00 - 20:30',
+            topic: 'Cấu trúc dữ liệu mảng, danh sách liên kết & Python',
+            attended: true
+          },
+          {
+            id: 'CA03',
+            classId: 'LH101',
+            day: 'Thứ 5',
+            time: '18:30 - 20:00',
+            topic: 'Bài tập pH và phản ứng trao đổi ion',
+            attended: false
+          },
+          {
+            id: 'CA04',
+            classId: 'LH104',
+            day: 'Thứ 6',
+            time: '19:30 - 21:00',
+            topic: 'Luyện đề Reading & Từ vựng học thuật',
+            attended: false
+          },
+          {
+            id: 'CA05',
+            classId: 'LH102',
+            day: 'Thứ 7',
+            time: '19:00 - 20:30',
+            topic: 'Truy vấn SQL JOIN & Thiết kế ERD',
+            attended: false
+          }
+        ]
+      };
+    }
+
+    let state = loadState();
+    let activeTab = 'dashboard';
+    let chartSubjectsInstance = null;
+    let chartStatusInstance = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.tutors) && Array.isArray(parsed.classes)) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        // Fallback to in-memory default state
+      }
+      return getDefaultState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // Ignore storage errors in sandboxed preview
+      }
+    }
+
+    function formatVND(amount) {
+      const num = Number(amount) || 0;
+      return num.toLocaleString('vi-VN') + ' ₫';
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgClass = type === 'success'
+        ? 'bg-slate-900 text-white border-slate-700'
+        : 'bg-amber-600 text-white border-amber-500';
+      toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${bgClass}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 2800);
+    }
+
+    function getTutorById(tutorId) {
+      return state.tutors.find(t => t.id === tutorId) || null;
+    }
+
+    function getClassById(classId) {
+      return state.classes.find(c => c.id === classId) || null;
+    }
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      const views = ['dashboard', 'tutors', 'classes', 'schedule', 'finance'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          el.classList.toggle('hidden', v !== tabName);
+        }
+      });
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-tab') === tabName;
+        if (btn.parentElement.classList.contains('md:flex')) {
+          btn.className = isCurrent
+            ? 'nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm'
+            : 'nav-tab px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900';
+        } else {
+          btn.className = isCurrent
+            ? 'nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white'
+            : 'nav-tab shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100';
+        }
+      });
+
+      renderAll();
+    }
+
+    function renderBadgesAndKPIs() {
+      const totalTutors = state.tutors.length;
+      const readyTutors = state.tutors.filter(t => t.status === 'Sẵn sàng').length;
+      const activeClasses = state.classes.filter(c => c.status === 'Đang học').length;
+      const waitingClasses = state.classes.filter(c => c.status === 'Chờ ghép').length;
+      const totalClasses = state.classes.length;
+
+      const totalRevenue = state.classes.reduce((sum, c) => sum + (Number(c.fee) || 0), 0);
+      const totalCommission = state.classes.reduce((sum, c) => {
+        const fee = Number(c.fee) || 0;
+        const rate = Number(c.commissionRate) || 0;
+        return sum + Math.round((fee * rate) / 100);
+      }, 0);
+
+      const matchedCount = state.classes.filter(c => c.tutorId && c.status !== 'Chờ ghép').length;
+      const matchRate = totalClasses > 0 ? Math.round((matchedCount / totalClasses) * 100) : 0;
+      const attendedCount = state.sessions.filter(s => s.attended).length;
+
+      document.getElementById('badge-tutors').textContent = totalTutors;
+      document.getElementById('badge-classes').textContent = waitingClasses > 0 ? `${waitingClasses} chờ` : totalClasses;
+
+      document.getElementById('kpi-total-tutors').textContent = `${totalTutors} Gia sư`;
+      document.getElementById('kpi-sub-tutors').textContent = `${readyTutors} gia sư sẵn sàng nhận lớp mới`;
+      document.getElementById('kpi-active-classes').textContent = `${activeClasses} Lớp`;
+      document.getElementById('kpi-waiting-classes').textContent = `${waitingClasses} lớp đang chờ ghép gia sư`;
+      document.getElementById('kpi-monthly-revenue').textContent = formatVND(totalRevenue);
+      document.getElementById('kpi-commission').textContent = `Phí dịch vụ trung tâm: ${formatVND(totalCommission)}`;
+      document.getElementById('kpi-match-rate').textContent = `${matchRate}%`;
+      document.getElementById('kpi-total-sessions').textContent = `${attendedCount}/${state.sessions.length} ca trong tuần đã dạy`;
+    }
+
+    function renderCharts() {
+      if (activeTab !== 'dashboard') return;
+
+      const subjects = ['Hóa học', 'Tin học', 'Toán', 'Tiếng Anh', 'Vật lý'];
+      const revenueBySubject = subjects.map(sub => {
+        return state.classes
+          .filter(c => c.subject === sub)
+          .reduce((acc, c) => acc + Math.round((Number(c.fee) || 0) / 1000), 0);
+      });
+      const countBySubject = subjects.map(sub => {
+        return state.classes.filter(c => c.subject === sub).length;
+      });
+
+      const ctxSub = document.getElementById('chart-subjects');
+      if (ctxSub && typeof Chart !== 'undefined') {
+        if (chartSubjectsInstance) chartSubjectsInstance.destroy();
+        chartSubjectsInstance = new Chart(ctxSub, {
+          type: 'bar',
+          data: {
+            labels: subjects,
+            datasets: [
+              {
+                label: 'Học phí (Nghìn VNĐ)',
+                data: revenueBySubject,
+                backgroundColor: '#4f46e5',
+                borderRadius: 8
+              },
+              {
+                label: 'Số lớp học',
+                data: countBySubject.map(c => c * 300),
+                backgroundColor: '#38bdf8',
+                borderRadius: 8
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    if (ctx.datasetIndex === 1) {
+                      const realCount = countBySubject[ctx.dataIndex];
+                      return `Số lớp: ${realCount} lớp`;
+                    }
+                    return `Học phí: ${ctx.raw.toLocaleString('vi-VN')}k ₫`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      const statusCounts = [
+        state.classes.filter(c => c.status === 'Đang học').length,
+        state.classes.filter(c => c.status === 'Chờ ghép').length,
+        state.classes.filter(c => c.status === 'Hoàn thành').length
+      ];
+
+      const ctxStatus = document.getElementById('chart-status');
+      if (ctxStatus && typeof Chart !== 'undefined') {
+        if (chartStatusInstance) chartStatusInstance.destroy();
+        chartStatusInstance = new Chart(ctxStatus, {
+          type: 'doughnut',
+          data: {
+            labels: ['Đang học', 'Chờ ghép gia sư', 'Hoàn thành'],
+            datasets: [{
+              data: statusCounts,
+              backgroundColor: ['#10b981', '#f59e0b', '#6366f1'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+    }
+
+    function renderDashboardLists() {
+      const waitingContainer = document.getElementById('dashboard-waiting-list');
+      const waitingClasses = state.classes.filter(c => c.status === 'Chờ ghép');
+
+      if (waitingClasses.length === 0) {
+        waitingContainer.innerHTML = `
+          <div class="p-6 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-500 text-sm">
+            Tất cả các lớp đều đã được ghép gia sư đầy đủ!
+          </div>`;
+      } else {
+        waitingContainer.innerHTML = waitingClasses.map(c => `
+          <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-xs font-bold rounded-md bg-amber-100 text-amber-800">${c.id}</span>
+                <span class="font-semibold text-sm text-slate-900">${c.subject} - ${c.grade}</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-1">${c.student} • ${c.address}</p>
+              <p class="text-xs text-slate-500 mt-0.5">Lịch: ${c.schedule} • <strong class="text-slate-700">${formatVND(c.fee)}/tháng</strong></p>
+            </div>
+            <button type="button" data-action="open-assign" data-id="${c.id}" class="shrink-0 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition">
+              Ghép gia sư ngay
+            </button>
+          </div>
+        `).join('');
+      }
+
+      const scheduleContainer = document.getElementById('dashboard-schedule-list');
+      if (state.sessions.length === 0) {
+        scheduleContainer.innerHTML = `
+          <div class="p-6 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-500 text-sm">
+            Chưa có ca dạy nào trong lịch tuần này.
+          </div>`;
+      } else {
+        scheduleContainer.innerHTML = state.sessions.slice(0, 4).map(s => {
+          const cls = getClassById(s.classId);
+          const tutor = cls ? getTutorById(cls.tutorId) : null;
+          return `
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 text-xs font-semibold rounded-md bg-indigo-100 text-indigo-700">${s.day} (${s.time})</span>
+                  <span class="text-xs font-bold text-slate-800">${cls ? cls.subject + ' - ' + cls.grade : s.classId}</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">${s.topic}</p>
+                <p class="text-xs text-slate-500 mt-0.5">Gia sư: <strong>${tutor ? tutor.name : 'Chưa gán'}</strong></p>
+              </div>
+              <button type="button" data-action="toggle-attendance" data-id="${s.id}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                s.attended
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+              }">
+                ${s.attended ? '✓ Đã điểm danh' : 'Điểm danh'}
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderTutors() {
+      const search = (document.getElementById('filter-tutor-search').value || '').toLowerCase().trim();
+      const subject = document.getElementById('filter-tutor-subject').value;
+      const status = document.getElementById('filter-tutor-status').value;
+
+      const filtered = state.tutors.filter(t => {
+        const matchSearch = !search ||
+          t.name.toLowerCase().includes(search) ||
+          t.subject.toLowerCase().includes(search) ||
+          t.university.toLowerCase().includes(search) ||
+          t.area.toLowerCase().includes(search);
+        const matchSub = subject === 'ALL' || t.subject === subject;
+        const matchStatus = status === 'ALL' || t.status === status;
+        return matchSearch && matchSub && matchStatus;
+      });
+
+      const grid = document.getElementById('tutors-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+            Không tìm thấy hồ sơ gia sư phù hợp với bộ lọc hiện tại.
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(t => {
+        const activeCount = state.classes.filter(c => c.tutorId === t.id && c.status === 'Đang học').length;
+        const initials = t.name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+        const badgeClass = t.status === 'Sẵn sàng'
+          ? 'bg-emerald-100 text-emerald-700'
+          : t.status === 'Đang dạy'
+          ? 'bg-indigo-100 text-indigo-700'
+          : 'bg-slate-200 text-slate-700';
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition">
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white font-bold flex items-center justify-center text-base shadow-xs">
+                    ${initials}
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-base">${t.name}</h3>
+                    <p class="text-xs text-slate-500">${t.university}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}">${t.status}</span>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">Môn: ${t.subject}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">${formatVND(t.rate)}/buổi</span>
+                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium">★ ${t.rating}</span>
+              </div>
+
+              <p class="text-xs text-slate-600 mt-3 line-clamp-2">${t.bio || 'Chưa có ghi chú thêm.'}</p>
+
+              <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                <div><strong>Khu vực:</strong> ${t.area}</div>
+                <div><strong>SĐT:</strong> ${t.phone} • <strong>Đang phụ trách:</strong> ${activeCount} lớp</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button type="button" data-action="edit-tutor" data-id="${t.id}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                Chỉnh sửa
+              </button>
+              <div class="flex items-center gap-1.5">
+                <button type="button" data-action="cycle-tutor-status" data-id="${t.id}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition">
+                  Đổi trạng thái
+                </button>
+                <button type="button" data-action="delete-tutor" data-id="${t.id}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+                  Xóa
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderClasses() {
+      const search = (document.getElementById('filter-class-search').value || '').toLowerCase().trim();
+      const status = document.getElementById('filter-class-status').value;
+      const subject = document.getElementById('filter-class-subject').value;
+
+      const filtered = state.classes.filter(c => {
+        const matchSearch = !search ||
+          c.id.toLowerCase().includes(search) ||
+          c.student.toLowerCase().includes(search) ||
+          c.address.toLowerCase().includes(search);
+        const matchStatus = status === 'ALL' || c.status === status;
+        const matchSub = subject === 'ALL' || c.subject === subject;
+        return matchSearch && matchStatus && matchSub;
+      });
+
+      const tbody = document.getElementById('classes-table-body');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-500 text-sm">Không có lớp học nào khớp với tiêu chí tìm kiếm.</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const tutor = getTutorById(c.tutorId);
+        const statusBadge = c.status === 'Đang học'
+          ? 'bg-emerald-100 text-emerald-700'
+          : c.status === 'Chờ ghép'
+          ? 'bg-amber-100 text-amber-800'
+          : 'bg-indigo-100 text-indigo-700';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-4">
+              <span class="font-bold text-slate-900">${c.id}</span>
+              <div class="text-xs font-semibold text-indigo-600 mt-0.5">${c.subject} (${c.grade})</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-medium text-slate-900">${c.student}</div>
+              <div class="text-xs text-slate-500">${c.address}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="text-xs font-medium text-slate-800">${c.schedule}</div>
+              <div class="text-xs text-slate-500">Tiến độ: ${c.completedSessions}/${c.totalSessions} buổi</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-900">${formatVND(c.fee)}</div>
+              <div class="text-xs text-slate-500">Phí TT: ${c.commissionRate}%</div>
+            </td>
+            <td class="py-3.5 px-4">
+              ${
+                tutor
+                  ? `<div class="font-medium text-slate-900">${tutor.name}</div><div class="text-xs text-slate-500">${tutor.phone}</div>`
+                  : `<span class="text-xs italic text-amber-700">Chưa có gia sư</span>`
+              }
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}">${c.status}</span>
+            </td>
+            <td class="py-3.5 px-4 text-right space-x-1">
+              <button type="button" data-action="open-assign" data-id="${c.id}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                ${tutor ? 'Đổi GS' : 'Ghép GS'}
+              </button>
+              <button type="button" data-action="complete-class" data-id="${c.id}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                ${c.status === 'Hoàn thành' ? 'Mở lại' : 'Hoàn thành'}
+              </button>
+              <button type="button" data-action="delete-class" data-id="${c.id}" class="px-2 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                Xóa
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSchedule() {
+      const selectedDay = document.getElementById('filter-schedule-day').value;
+      const filtered = state.sessions.filter(s => selectedDay === 'ALL' || s.day === selectedDay);
+      const grid = document.getElementById('schedule-grid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+            Không có ca dạy nào trong ngày đã chọn. Bấm "+ Thêm ca dạy" để lên lịch mới!
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(s => {
+        const cls = getClassById(s.classId);
+        const tutor = cls ? getTutorById(cls.tutorId) : null;
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">${s.day} • ${s.time}</span>
+                <span class="text-xs font-semibold ${s.attended ? 'text-emerald-600' : 'text-amber-600'}">
+                  ${s.attended ? '● Đã dạy' : '○ Chưa điểm danh'}
+                </span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base mt-3">
+                ${cls ? `${cls.subject} (${cls.grade}) - ${cls.id}` : s.classId}
+              </h3>
+              <p class="text-xs text-slate-600 mt-1"><strong>Chủ đề:</strong> ${s.topic}</p>
+              <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                <div><strong>Học viên:</strong> ${cls ? cls.student : 'N/A'}</div>
+                <div><strong>Gia sư:</strong> ${tutor ? tutor.name : 'Chưa ghép gia sư'}</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <button type="button" data-action="toggle-attendance" data-id="${s.id}" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                s.attended
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }">
+                ${s.attended ? '✓ Đã điểm danh buổi học' : 'Điểm danh hoàn thành'}
+              </button>
+              <button type="button" data-action="delete-session" data-id="${s.id}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                Xóa ca
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFinance() {
+      const statusFilter = document.getElementById('filter-finance-status').value;
+
+      let collected = 0;
+      let pending = 0;
+      let totalCommission = 0;
+
+      state.classes.forEach(c => {
+        const fee = Number(c.fee) || 0;
+        const comm = Math.round((fee * (Number(c.commissionRate) || 0)) / 100);
+        totalCommission += comm;
+        if (c.paymentStatus === 'Đã thanh toán') {
+          collected += fee;
+        } else {
+          pending += fee;
+        }
+      });
+
+      document.getElementById('fin-collected').textContent = formatVND(collected);
+      document.getElementById('fin-pending').textContent = formatVND(pending);
+      document.getElementById('fin-net-commission').textContent = formatVND(totalCommission);
+
+      const filtered = state.classes.filter(c => statusFilter === 'ALL' || c.paymentStatus === statusFilter);
+      const tbody = document.getElementById('finance-table-body');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="py-8 text-center text-slate-500 text-sm">Không có bản ghi học phí nào khớp bộ lọc.</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const tutor = getTutorById(c.tutorId);
+        const fee = Number(c.fee) || 0;
+        const comm = Math.round((fee * (Number(c.commissionRate) || 0)) / 100);
+        const tutorPay = fee - comm;
+        const paid = c.paymentStatus === 'Đã thanh toán';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">${c.id} - ${c.subject}</div>
+              <div class="text-xs text-slate-500">${c.student}</div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-800 font-medium">
+              ${tutor ? tutor.name : '<span class="text-xs italic text-amber-700">Chưa ghép</span>'}
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-1.5">
+                <span class="font-semibold text-slate-800">${c.completedSessions}/${c.totalSessions}</span>
+                <button type="button" data-action="inc-session" data-id="${c.id}" class="px-1.5 py-0.5 text-xs rounded bg-slate-100 hover:bg-slate-200 font-bold" title="Tăng 1 buổi đã dạy">+1</button>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 font-semibold text-slate-900">${formatVND(fee)}</td>
+            <td class="py-3.5 px-4 text-emerald-700 font-semibold">${formatVND(tutorPay)}</td>
+            <td class="py-3.5 px-4 text-indigo-700 font-medium">${formatVND(comm)} (${c.commissionRate}%)</td>
+            <td class="py-3.5 px-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${
+                paid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+              }">
+                ${c.paymentStatus}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right">
+              <button type="button" data-action="toggle-payment" data-id="${c.id}" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                paid
+                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              }">
+                ${paid ? 'Đánh dấu chưa thu' : 'Xác nhận đã thu'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      renderBadgesAndKPIs();
+      renderDashboardLists();
+      renderTutors();
+      renderClasses();
+      renderSchedule();
+      renderFinance();
+      renderCharts();
+    }
+
+    // Modal Helpers
+    function openTutorModal(editTutorId = null) {
+      const modal = document.getElementById('modal-tutor');
+      const title = document.getElementById('modal-tutor-title');
+      const form = document.getElementById('form-tutor');
+      form.reset();
+
+      if (editTutorId) {
+        const t = getTutorById(editTutorId);
+        if (!t) return;
+        title.textContent = `Cập nhật Gia sư (${t.id})`;
+        document.getElementById('tutor-id').value = t.id;
+        document.getElementById('tutor-name').value = t.name;
+        document.getElementById('tutor-phone').value = t.phone;
+        document.getElementById('tutor-subject').value = t.subject;
+        document.getElementById('tutor-university').value = t.university;
+        document.getElementById('tutor-rate').value = t.rate;
+        document.getElementById('tutor-area').value = t.area;
+        document.getElementById('tutor-status').value = t.status;
+        document.getElementById('tutor-bio').value = t.bio;
+      } else {
+        title.textContent = 'Thêm Gia sư mới';
+        document.getElementById('tutor-id').value = '';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeTutorModal() {
+      const modal = document.getElementById('modal-tutor');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openClassModal() {
+      const modal = document.getElementById('modal-class');
+      document.getElementById('form-class').reset();
+      const select = document.getElementById('class-tutor-select');
+      select.innerHTML = `<option value="">-- Chờ ghép gia sư --</option>` +
+        state.tutors
+          .filter(t => t.status !== 'Tạm nghỉ')
+          .map(t => `<option value="${t.id}">${t.name} (${t.subject} - ${formatVND(t.rate)}/buổi)</option>`)
+          .join('');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeClassModal() {
+      const modal = document.getElementById('modal-class');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openAssignModal(classId) {
+      const cls = getClassById(classId);
+      if (!cls) return;
+      document.getElementById('assign-class-id').value = cls.id;
+      document.getElementById('assign-class-info').innerHTML = `
+        <div class="font-bold text-slate-900 text-sm">${cls.id}: ${cls.subject} (${cls.grade})</div>
+        <div class="text-slate-600">${cls.student} • ${cls.address}</div>
+        <div class="text-slate-500">Lịch: ${cls.schedule} • Học phí: <strong>${formatVND(cls.fee)}</strong></div>
+      `;
+
+      const sortedTutors = [...state.tutors].sort((a, b) => {
+        const aMatch = a.subject === cls.subject ? 1 : 0;
+        const bMatch = b.subject === cls.subject ? 1 : 0;
+        return bMatch - aMatch;
+      });
+
+      const dropdown = document.getElementById('assign-tutor-dropdown');
+      dropdown.innerHTML = sortedTutors.map(t => {
+        const tag = t.subject === cls.subject ? '★ Đúng chuyên môn' : `Môn ${t.subject}`;
+        const selected = cls.tutorId === t.id ? 'selected' : '';
+        return `<option value="${t.id}" ${selected}>${t.name} (${tag} • ${t.status})</option>`;
+      }).join('');
+
+      const modal = document.getElementById('modal-assign');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAssignModal() {
+      const modal = document.getElementById('modal-assign');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openSessionModal() {
+      const select = document.getElementById('session-class-id');
+      select.innerHTML = state.classes.map(c => {
+        const tutor = getTutorById(c.tutorId);
+        return `<option value="${c.id}">${c.id} - ${c.subject} (${c.student}) ${tutor ? '• GS ' + tutor.name : ''}</option>`;
+      }).join('');
+      const modal = document.getElementById('modal-session');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSessionModal() {
+      const modal = document.getElementById('modal-session');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Event Wiring
+    window.addEventListener('DOMContentLoaded', () => {
+      // Navigation tabs
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      });
+
+      document.getElementById('btn-goto-classes').addEventListener('click', () => switchTab('classes'));
+      document.getElementById('btn-goto-schedule').addEventListener('click', () => switchTab('schedule'));
+
+      // Quick Header Buttons
+      document.getElementById('btn-quick-tutor').addEventListener('click', () => openTutorModal());
+      document.getElementById('btn-quick-class').addEventListener('click', () => openClassModal());
+      document.getElementById('btn-add-session').addEventListener('click', () => openSessionModal());
+
+      // Close Modals
+      document.getElementById('btn-close-tutor-modal').addEventListener('click', closeTutorModal);
+      document.getElementById('btn-cancel-tutor').addEventListener('click', closeTutorModal);
+      document.getElementById('btn-close-class-modal').addEventListener('click', closeClassModal);
+      document.getElementById('btn-cancel-class').addEventListener('click', closeClassModal);
+      document.getElementById('btn-close-assign-modal').addEventListener('click', closeAssignModal);
+      document.getElementById('btn-cancel-assign').addEventListener('click', closeAssignModal);
+      document.getElementById('btn-close-session-modal').addEventListener('click', closeSessionModal);
+      document.getElementById('btn-cancel-session').addEventListener('click', closeSessionModal);
+
+      // Filters
+      ['filter-tutor-search', 'filter-tutor-subject', 'filter-tutor-status'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderTutors);
+      });
+      ['filter-class-search', 'filter-class-status', 'filter-class-subject'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderClasses);
+      });
+      document.getElementById('filter-schedule-day').addEventListener('change', renderSchedule);
+      document.getElementById('filter-finance-status').addEventListener('change', renderFinance);
+
+      // Form: Add / Edit Tutor
+      document.getElementById('form-tutor').addEventListener('submit', e => {
+        e.preventDefault();
+        const editId = document.getElementById('tutor-id').value;
+        const payload = {
+          name: document.getElementById('tutor-name').value.trim(),
+          phone: document.getElementById('tutor-phone').value.trim(),
+          subject: document.getElementById('tutor-subject').value,
+          university: document.getElementById('tutor-university').value.trim(),
+          rate: Number(document.getElementById('tutor-rate').value) || 180000,
+          area: document.getElementById('tutor-area').value.trim(),
+          status: document.getElementById('tutor-status').value,
+          bio: document.getElementById('tutor-bio').value.trim()
+        };
+
+        if (editId) {
+          const idx = state.tutors.findIndex(t => t.id === editId);
+          if (idx > -1) {
+            state.tutors[idx] = { ...state.tutors[idx], ...payload };
+            showToast(`Đã cập nhật hồ sơ gia sư ${payload.name}`);
+          }
+        } else {
+          const nextNum = state.tutors.length + 1;
+          const newId = 'GS' + String(nextNum).padStart(2, '0');
+          state.tutors.unshift({
+            id: newId,
+            rating: 5.0,
+            ...payload
+          });
+          showToast(`Đã thêm gia sư mới: ${payload.name}`);
+        }
+
+        saveState();
+        closeTutorModal();
+        renderAll();
+      });
+
+      // Form: Add Class
+      document.getElementById('form-class').addEventListener('submit', e => {
+        e.preventDefault();
+        const tutorId = document.getElementById('class-tutor-select').value;
+        const nextNum = 101 + state.classes.length;
+        const newClass = {
+          id: 'LH' + nextNum,
+          student: document.getElementById('class-student').value.trim(),
+          subject: document.getElementById('class-subject').value,
+          grade: document.getElementById('class-grade').value.trim(),
+          address: document.getElementById('class-address').value.trim(),
+          schedule: document.getElementById('class-schedule').value.trim(),
+          fee: Number(document.getElementById('class-fee').value) || 1500000,
+          totalSessions: Number(document.getElementById('class-total-sessions').value) || 8,
+          completedSessions: 0,
+          commissionRate: Number(document.getElementById('class-commission').value) || 20,
+          tutorId: tutorId,
+          status: tutorId ? 'Đang học' : 'Chờ ghép',
+          paymentStatus: 'Chưa thu'
+        };
+
+        if (tutorId) {
+          const t = getTutorById(tutorId);
+          if (t) t.status = 'Đang dạy';
+        }
+
+        state.classes.unshift(newClass);
+        saveState();
+        closeClassModal();
+        renderAll();
+        showToast(`Đã tạo lớp học ${newClass.id} (${newClass.subject})`);
+      });
+
+      // Confirm Assign Tutor
+      document.getElementById('btn-confirm-assign').addEventListener('click', () => {
+        const classId = document.getElementById('assign-class-id').value;
+        const tutorId = document.getElementById('assign-tutor-dropdown').value;
+        const cls = getClassById(classId);
+        const tutor = getTutorById(tutorId);
+        if (cls && tutor) {
+          cls.tutorId = tutor.id;
+          cls.status = 'Đang học';
+          tutor.status = 'Đang dạy';
+          saveState();
+          closeAssignModal();
+          renderAll();
+          showToast(`Đã ghép gia sư ${tutor.name} vào lớp ${cls.id}`);
+        }
+      });
+
+      // Form: Add Schedule Session
+      document.getElementById('form-session').addEventListener('submit', e => {
+        e.preventDefault();
+        const newSession = {
+          id: 'CA' + Date.now().toString().slice(-4),
+          classId: document.getElementById('session-class-id').value,
+          day: document.getElementById('session-day').value,
+          time: document.getElementById('session-time').value.trim(),
+          topic: document.getElementById('session-topic').value.trim(),
+          attended: false
+        };
+        state.sessions.unshift(newSession);
+        saveState();
+        closeSessionModal();
+        renderAll();
+        showToast(`Đã thêm ca dạy vào ${newSession.day}`);
+      });
+
+      // Export CSV
+      document.getElementById('btn-export-csv').addEventListener('click', () => {
+        const headers = ['MaLop', 'MonHoc', 'KhoiLop', 'HocVien', 'GiaSu', 'SoBuoi', 'HocPhi', 'PhiTrungTam', 'TrangThaiThu'];
+        const rows = state.classes.map(c => {
+          const tutor = getTutorById(c.tutorId);
+          const fee = Number(c.fee) || 0;
+          const comm = Math.round((fee * (Number(c.commissionRate) || 0)) / 100);
+          return [
+            c.id,
+            `"${c.subject}"`,
+            `"${c.grade}"`,
+            `"${c.student}"`,
+            `"${tutor ? tutor.name : 'Chua ghep'}"`,
+            `${c.completedSessions}/${c.totalSessions}`,
+            fee,
+            comm,
+            `"${c.paymentStatus}"`
+          ].join(',');
+        });
+        const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'bao_cao_hoc_phi_tutorlink.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showToast('Đã xuất file CSV báo cáo học phí!');
+      });
+
+      // Reset Demo Data
+      document.getElementById('btn-reset-data').addEventListener('click', () => {
+        state = getDefaultState();
+        saveState();
+        renderAll();
+        showToast('Đã khôi phục dữ liệu mẫu ban đầu!');
+      });
+
+      // Delegated Action Clicks across views
+      document.body.addEventListener('click', e => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+
+        if (action === 'open-assign') {
+          openAssignModal(id);
+        } else if (action === 'toggle-attendance') {
+          const session = state.sessions.find(s => s.id === id);
+          if (session) {
+            session.attended = !session.attended;
+            const cls = getClassById(session.classId);
+            if (cls) {
+              if (session.attended && cls.completedSessions < cls.totalSessions) {
+                cls.completedSessions += 1;
+              } else if (!session.attended && cls.completedSessions > 0) {
+                cls.completedSessions -= 1;
+              }
+            }
+            saveState();
+            renderAll();
+            showToast(session.attended ? 'Đã điểm danh buổi dạy!' : 'Đã hủy điểm danh buổi dạy.');
+          }
+        } else if (action === 'edit-tutor') {
+          openTutorModal(id);
+        } else if (action === 'cycle-tutor-status') {
+          const tutor = getTutorById(id);
+          if (tutor) {
+            const order = ['Sẵn sàng', 'Đang dạy', 'Tạm nghỉ'];
+            const nextIdx = (order.indexOf(tutor.status) + 1) % order.length;
+            tutor.status = order[nextIdx];
+            saveState();
+            renderAll();
+            showToast(`Trạng thái của ${tutor.name}: ${tutor.status}`);
+          }
+        } else if (action === 'delete-tutor') {
+          state.tutors = state.tutors.filter(t => t.id !== id);
+          state.classes.forEach(c => {
+            if (c.tutorId === id) {
+              c.tutorId = '';
+              c.status = 'Chờ ghép';
+            }
+          });
+          saveState();
+          renderAll();
+          showToast('Đã xóa hồ sơ gia sư.');
+        } else if (action === 'complete-class') {
+          const cls = getClassById(id);
+          if (cls) {
+            cls.status = cls.status === 'Hoàn thành' ? (cls.tutorId ? 'Đang học' : 'Chờ ghép') : 'Hoàn thành';
+            saveState();
+            renderAll();
+            showToast(`Lớp ${cls.id} đã chuyển sang: ${cls.status}`);
+          }
+        } else if (action === 'delete-class') {
+          state.classes = state.classes.filter(c => c.id !== id);
+          state.sessions = state.sessions.filter(s => s.classId !== id);
+          saveState();
+          renderAll();
+          showToast('Đã xóa lớp học.');
+        } else if (action === 'delete-session') {
+          state.sessions = state.sessions.filter(s => s.id !== id);
+          saveState();
+          renderAll();
+          showToast('Đã xóa ca dạy khỏi lịch.');
+        } else if (action === 'toggle-payment') {
+          const cls = getClassById(id);
+          if (cls) {
+            cls.paymentStatus = cls.paymentStatus === 'Đã thanh toán' ? 'Chưa thu' : 'Đã thanh toán';
+            saveState();
+            renderAll();
+            showToast(`Lớp ${cls.id}: ${cls.paymentStatus}`);
+          }
+        } else if (action === 'inc-session') {
+          const cls = getClassById(id);
+          if (cls && cls.completedSessions < cls.totalSessions) {
+            cls.completedSessions += 1;
+            saveState();
+            renderAll();
+            showToast(`Đã ghi nhận thêm 1 buổi cho lớp ${cls.id}`);
+          }
+        }
+      });
+
+      renderAll();
+    });
+  </script>
+</body>
+</html>

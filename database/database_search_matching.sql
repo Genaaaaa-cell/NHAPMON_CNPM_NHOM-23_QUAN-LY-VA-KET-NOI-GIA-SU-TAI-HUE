@@ -11,3 +11,5 @@ CREATE TABLE Tutor_Search_Profiles (
 );
 
 CREATE INDEX idx_subject_district ON Tutor_Search_Profiles(subject, district);
+
+
